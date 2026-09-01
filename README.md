@@ -30,6 +30,8 @@ This repo is my final project for the **AI Product Management Certification**. E
 ### M5 · Agentic Workflows
 - **Agent Workflow Spec (AWSpec)** — [`05-agentic-workflows/awspec.md`](05-agentic-workflows/awspec.md)
 - **Agent Control Panel** — [`05-agentic-workflows/agent-control-panel.md`](05-agentic-workflows/agent-control-panel.md)
+- **Juno agent reference** — [`05-agentic-workflows/Juno Agent.json`](05-agentic-workflows/Juno%20Agent.json)
+- **Langflow walkthrough** — [`05-agentic-workflows/langflow-walkthrough.md`](05-agentic-workflows/langflow-walkthrough.md)
 
 ### M6 · Evals & Guardrails
 - **Eval stack** — [`06-evals/eval-stack.md`](06-evals/eval-stack.md)
@@ -82,7 +84,9 @@ juno-pm/
 │   └── trust-gaps.md                  ← M4: trust-gap mitigations
 ├── 05-agentic-workflows/
 │   ├── awspec.md                      ← M5: Agent Workflow Spec
-│   └── agent-control-panel.md         ← M5: Agent Control Panel
+│   ├── agent-control-panel.md         ← M5: Agent Control Panel
+│   ├── Juno Agent.json                ← M5: builder-neutral agent reference
+│   └── langflow-walkthrough.md        ← M5: safe Langflow mapping + dry run
 └── 06-evals/
     ├── eval-stack.md                  ← M6: layered eval stack
     └── human-rubric.md                ← M6: human evaluation rubric
