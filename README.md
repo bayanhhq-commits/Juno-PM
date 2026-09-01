@@ -32,7 +32,6 @@ This repo is my final project for the **AI Product Management Certification**. E
 - **Agent Control Panel** — [`05-agentic-workflows/agent-control-panel.md`](05-agentic-workflows/agent-control-panel.md)
 - **Juno agent reference** — [`05-agentic-workflows/Juno Agent.json`](05-agentic-workflows/Juno%20Agent.json)
 - **Langflow walkthrough** — [`05-agentic-workflows/langflow-walkthrough.md`](05-agentic-workflows/langflow-walkthrough.md)
-- **Local dry-run harness** — [`05-agentic-workflows/run_juno_dry_run.py`](05-agentic-workflows/run_juno_dry_run.py)
 
 ### M6 · Evals & Guardrails
 - **Eval stack** — [`06-evals/eval-stack.md`](06-evals/eval-stack.md)
@@ -87,11 +86,7 @@ juno-pm/
 │   ├── awspec.md                      ← M5: Agent Workflow Spec
 │   ├── agent-control-panel.md         ← M5: Agent Control Panel
 │   ├── Juno Agent.json                ← M5: builder-neutral agent reference
-│   ├── langflow-walkthrough.md        ← M5: safe Langflow mapping + dry run
-│   ├── run_juno_dry_run.py            ← runnable zero-cost policy harness
-│   ├── test_juno_dry_run.py           ← harness tests
-│   └── fixtures/
-│       └── juno-dry-run.json          ← synthetic test inputs
+│   └── langflow-walkthrough.md        ← M5: safe Langflow mapping + dry run
 └── 06-evals/
     ├── eval-stack.md                  ← M6: layered eval stack
     └── human-rubric.md                ← M6: human evaluation rubric
