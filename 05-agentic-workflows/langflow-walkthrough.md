@@ -30,6 +30,30 @@ The first walkthrough uses no Langflow account and no API key. This avoids crede
 
 The test corpus below is synthetic and exists only to exercise the workflow. It is not customer research and must never be presented as real RocketShip evidence.
 
+## Run it now
+
+Requirements: Python 3.10 or newer. The harness uses only the standard library; no account, API key, package install, or network access is needed.
+
+From the repository root:
+
+```bash
+cd 05-agentic-workflows
+python3 -m unittest -v test_juno_dry_run.py
+python3 run_juno_dry_run.py --spec "Juno Agent.json" --fixture fixtures/juno-dry-run.json
+```
+
+The first command runs six policy and reversibility tests. The second prints a synthetic Quality Mode shortlist. The safe default is `pending_pm_approval`, so export remains blocked.
+
+To exercise the explicit approval branch locally:
+
+```bash
+python3 run_juno_dry_run.py --approve
+```
+
+`--approve` changes only the in-memory dry-run result; it does not contact or modify any external system. Use `--json` for machine-readable output or `--out result.md` to save a local report.
+
+To test your own synthetic data, copy `fixtures/juno-dry-run.json`, retain the same schema, and point `--fixture` to the copy. Do not use confidential or production data in this harness.
+
 ## Reference flow
 
 1. The PM creates a prioritization workspace and selects approved sources.
