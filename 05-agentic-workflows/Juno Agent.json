@@ -1,110 +1,594 @@
 {
-  "description": "Juno PM — starter Langflow agent for the AI Product Management Certification. Import into Langflow and add your own OpenAI API key. Single-agent ReAct pattern that triages a P0 thread into a top-3 risk list with citations.",
-  "name": "Juno PM — P0 Triage Agent (Starter)",
-  "version": "0.1.0",
+  "description": "Juno PM — supervised evidence-backed prioritization agent for the AI Product Management Certification. It turns approved product evidence and optional strategy context into a cited P0–P3 opportunity shortlist. All outputs remain drafts until explicit PM approval.",
+  "name": "Juno PM — Evidence-Backed Prioritization Agent",
+  "version": "1.0.0",
+  "schema_version": "juno-agent-spec/1.0",
+  "autonomy": {
+    "level": "assisted-copilot",
+    "final_decision_owner": "Product Manager",
+    "allowed": [
+      "Read PM-approved sources within the requesting user's permissions",
+      "Parse, retrieve, cluster, summarize, and draft",
+      "Recommend P0-P3 priorities",
+      "Flag weak evidence, conflicts, stale sources, and anti-patterns",
+      "Create draft opportunity shortlists and Opportunity Briefs",
+      "Record audit and evaluation data"
+    ],
+    "prohibited": [
+      "Approve or finalize priorities",
+      "Edit the product roadmap",
+      "Create or update Jira delivery work",
+      "Send Slack messages or executive communications",
+      "Commit resources or promise delivery dates",
+      "Access unapproved or unauthorized sources",
+      "Make legal, privacy, security, compliance, or financial decisions",
+      "Delete audit history or overwrite an approved version"
+    ]
+  },
+  "reversibility": {
+    "policy": "Every agent-created result is draft-only and every change is versioned. No prior version is overwritten or deleted.",
+    "controls": [
+      "cancel_run",
+      "undo_last_change",
+      "discard_draft",
+      "compare_versions",
+      "restore_previous_approved_version",
+      "kill_switch"
+    ],
+    "restore_behavior": "Restoring creates a new immutable restoration event that points to the selected prior approved version. History remains intact.",
+    "repository_backup_branch": "backup/pre-juno-agent-rewrite-2026-09-01",
+    "external_side_effects_in_v1": "none"
+  },
   "data": {
     "nodes": [
       {
-        "id": "input-thread",
-        "type": "ChatInput",
-        "position": { "x": 0, "y": 0 },
+        "id": "workspace-input",
+        "type": "StructuredInput",
+        "position": {
+          "x": 0,
+          "y": 0
+        },
         "data": {
-          "label": "Slack P0 thread",
-          "description": "Paste the raw Slack thread for testing. In production this is fed by a webhook on #escalations.",
-          "input_value": ""
+          "label": "Prioritization workspace",
+          "description": "PM-selected product evidence, optional strategy, visible criteria, planning period, and user permissions.",
+          "required_fields": [
+            "workspaceId",
+            "decisionName",
+            "planningPeriod",
+            "requestingUser",
+            "approvedSources",
+            "criteria"
+          ],
+          "optional_fields": [
+            "strategyDocument"
+          ],
+          "trigger": "Explicit PM click on Analyse Evidence"
         }
       },
       {
-        "id": "system-prompt",
-        "type": "Prompt",
-        "position": { "x": 320, "y": 0 },
+        "id": "immutable-snapshot",
+        "type": "Snapshot",
+        "position": {
+          "x": 300,
+          "y": 0
+        },
         "data": {
-          "label": "Juno system prompt",
-          "template": "You are Juno PM, an AI Associate PM embedded in RocketShip's Slack/Notion/Jira. You operate as a risk watchdog. For the attached P0 thread:\n\n1. Identify the top 3 risks.\n2. For each risk, cite the message index that supports it.\n3. Score each risk 1-5 for severity. If confidence < 70%, mark NEEDS PM REVIEW.\n4. Never invent customer names, ARR, or contracts.\n5. Output a markdown table: Rank | Risk | Confidence | Source idx | Suggested action.\n\nThread:\n{thread}"
+          "label": "Immutable run snapshot",
+          "description": "Creates a traceable snapshot before any AI action.",
+          "fields": [
+            "trace_id",
+            "input_hash",
+            "source_ids",
+            "source_versions",
+            "strategy_version",
+            "criteria",
+            "requesting_user",
+            "started_at"
+          ],
+          "overwrite": false
         }
       },
       {
-        "id": "retrieval",
-        "type": "Retriever",
-        "position": { "x": 320, "y": 220 },
+        "id": "permission-validator",
+        "type": "PolicyCheck",
+        "position": {
+          "x": 600,
+          "y": 0
+        },
         "data": {
-          "label": "RAG retriever (placeholder)",
-          "description": "Replace with a real vector store. Default: pgvector + text-embedding-3-large. Top-k = 10.",
-          "k": 10
+          "label": "Input and permission validation",
+          "checks": [
+            "At least one usable product-evidence source",
+            "Supported source type",
+            "Source ID, type, date, and version present",
+            "Requesting user can access each source",
+            "Revoked and unapproved sources excluded",
+            "Unnecessary sensitive data flagged"
+          ],
+          "on_failure": "safe-handoff"
         }
       },
       {
-        "id": "llm",
-        "type": "OpenAI",
-        "position": { "x": 640, "y": 110 },
-        "data": {
-          "label": "GPT-4-class model",
-          "model": "gpt-4o",
-          "temperature": 0.2,
-          "max_tokens": 800,
-          "_note": "Add your OPENAI_API_KEY as a Langflow environment variable."
-        }
-      },
-      {
-        "id": "guardrail",
+        "id": "mode-selector",
         "type": "Conditional",
-        "position": { "x": 960, "y": 110 },
+        "position": {
+          "x": 900,
+          "y": 0
+        },
         "data": {
-          "label": "Confidence guardrail",
-          "condition": "all(risks).confidence >= 0.7",
-          "if_true": "auto-post",
-          "if_false": "hand-off"
+          "label": "Strategy Mode or Quality Mode",
+          "condition": "strategyDocument is present and valid",
+          "if_true": "strategy-mode",
+          "if_false": "quality-mode",
+          "quality_mode_warning": "Without a strategy document, priority reflects request quality, not strategic alignment."
         }
       },
       {
-        "id": "auto-post",
-        "type": "SlackPost",
-        "position": { "x": 1280, "y": 30 },
+        "id": "rag-retriever",
+        "type": "Retriever",
+        "position": {
+          "x": 1200,
+          "y": 0
+        },
         "data": {
-          "label": "Auto-post to #pm-daily",
-          "channel": "#pm-daily",
-          "_note": "Stub. Replace with a real Slack tool integration."
+          "label": "Approved-corpus RAG",
+          "source_scope": [
+            "Interview transcripts",
+            "Support tickets",
+            "Customer feedback",
+            "Executive emails",
+            "Active strategy document"
+          ],
+          "retrieval": "hybrid-semantic-keyword",
+          "top_k": 10,
+          "rerank_top_n": 5,
+          "chunk_size_tokens": "300-500",
+          "overlap": "10-15%",
+          "required_metadata": [
+            "source_id",
+            "source_type",
+            "date",
+            "version",
+            "permissions",
+            "excerpt_boundaries"
+          ],
+          "guardrail": "Never retrieve from the unrestricted web or outside the PM-approved corpus."
         }
       },
       {
-        "id": "hand-off",
-        "type": "SlackPost",
-        "position": { "x": 1280, "y": 200 },
+        "id": "signal-extractor",
+        "type": "OpenAI",
+        "position": {
+          "x": 1500,
+          "y": 0
+        },
         "data": {
-          "label": "Hand-off to #pm-juno-review",
-          "channel": "#pm-juno-review",
-          "tag": "@on-call-pm",
-          "_note": "Stub. Replace with a real Slack tool integration."
+          "label": "Evidence and signal extraction",
+          "model": "GPT-4-class model",
+          "temperature": 0.1,
+          "max_tokens": 1800,
+          "structured_output": true,
+          "system_prompt": "You are Juno, an AI Associate Product Manager. Use only the supplied retrieved evidence. Separate direct quotes, confirmed facts, interpretations, assumptions, and open questions. Group related signals without hiding conflicts or minority opinions. Define user problems before proposed solutions. Never invent users, quotes, metrics, ARR, requirements, strategy clauses, or citations. Return only the required structured object.",
+          "output_fields": [
+            "candidate_opportunities",
+            "source_citations",
+            "conflicts",
+            "assumptions",
+            "open_questions",
+            "anti_patterns"
+          ]
         }
       },
       {
-        "id": "eval-log",
+        "id": "priority-engine",
+        "type": "ScoringEngine",
+        "position": {
+          "x": 1800,
+          "y": 0
+        },
+        "data": {
+          "label": "Transparent P0-P3 prioritization",
+          "strategy_mode": {
+            "source_of_truth_for_alignment": "The user-provided strategy document",
+            "required_output": [
+              "priority",
+              "strategicPillar",
+              "strategicAlignment",
+              "strategicRationale",
+              "strategyCitation"
+            ],
+            "rule": "P0-P1 requires direct product evidence plus explicit strategy support."
+          },
+          "quality_mode": {
+            "score_total": 100,
+            "signals": {
+              "problem_clarity": 25,
+              "evidence_quality": 25,
+              "requirement_specificity": 25,
+              "anti_pattern_check": 25
+            },
+            "mapping": {
+              "80-100": "P1",
+              "50-79": "P2",
+              "20-49": "P3",
+              "0-19": "P3 and potentially Not Recommended"
+            }
+          },
+          "anti_patterns": [
+            "Competitor copying",
+            "Vanity or optics request",
+            "Vague problem",
+            "Arbitrary deadline",
+            "Executive opinion without user evidence"
+          ]
+        }
+      },
+      {
+        "id": "evidence-gate",
+        "type": "CitationValidator",
+        "position": {
+          "x": 2100,
+          "y": 0
+        },
+        "data": {
+          "label": "Evidence gate",
+          "conditions_to_pass": [
+            "Every recommended item has at least one valid viewable source excerpt",
+            "Each citation supports the nearby claim",
+            "Evidence permissions remain valid",
+            "Evidence coverage is at least 0.70",
+            "Strategy Mode P0-P1 items have direct product evidence and a valid strategy citation",
+            "Material conflicts are visible"
+          ],
+          "on_pass": "opportunity-brief",
+          "on_fail": "safe-handoff",
+          "fail_label": "Insufficient Evidence",
+          "fail_action": "Exclude the item from the recommended order until PM review."
+        }
+      },
+      {
+        "id": "opportunity-brief",
+        "type": "Prompt",
+        "position": {
+          "x": 2400,
+          "y": 0
+        },
+        "data": {
+          "label": "Draft shortlist and Opportunity Brief",
+          "input_scope": "Validated structured data only",
+          "output": {
+            "insights": [
+              "title",
+              "user_problem",
+              "priority",
+              "evidence_strength",
+              "source_citations",
+              "strategic_or_quality_rationale",
+              "conflicts",
+              "assumptions"
+            ],
+            "brief": [
+              "approved_order_draft",
+              "supporting_evidence",
+              "non_goals",
+              "open_questions",
+              "recommended_research"
+            ]
+          },
+          "status": "draft",
+          "external_write": false
+        }
+      },
+      {
+        "id": "safe-handoff",
+        "type": "HumanReview",
+        "position": {
+          "x": 2400,
+          "y": 260
+        },
+        "data": {
+          "label": "Needs PM review",
+          "escalation_reasons": [
+            "Missing or invalid citation",
+            "Evidence coverage below 70%",
+            "Unsupported P0-P1 recommendation",
+            "Expired, superseded, or ambiguous strategy",
+            "Materially conflicting evidence",
+            "Sensitive or restricted data",
+            "Legal, privacy, security, compliance, or financial risk",
+            "Retrieval, model, or schema failure"
+          ],
+          "behavior": "Pause the affected item or run, preserve all inputs, and show the PM the exact reason and next action."
+        }
+      },
+      {
+        "id": "pm-review",
+        "type": "HumanReview",
+        "position": {
+          "x": 2700,
+          "y": 0
+        },
+        "data": {
+          "label": "PM review and reversible editing",
+          "actions": [
+            "inspect_citations",
+            "edit",
+            "reorder",
+            "merge",
+            "split",
+            "reject",
+            "override_with_reason",
+            "undo_last_change",
+            "discard_draft",
+            "compare_versions",
+            "restore_previous_approved_version",
+            "approve"
+          ],
+          "approval_required": true,
+          "every_override_requires_reason": true
+        }
+      },
+      {
+        "id": "approval-gate",
+        "type": "ApprovalGate",
+        "position": {
+          "x": 3000,
+          "y": 0
+        },
+        "data": {
+          "label": "Explicit PM approval",
+          "condition": "pm_approval == true",
+          "if_true": "version-store",
+          "if_false": "pm-review",
+          "automatic_approval": false
+        }
+      },
+      {
+        "id": "version-store",
+        "type": "VersionStore",
+        "position": {
+          "x": 3300,
+          "y": 0
+        },
+        "data": {
+          "label": "Append-only approved versions",
+          "append_only": true,
+          "immutable_versions": true,
+          "stored_fields": [
+            "trace_id",
+            "input_hash",
+            "strategy_version",
+            "retrieved_chunk_ids",
+            "prompt_version",
+            "model_version",
+            "ai_draft",
+            "pm_edits",
+            "override_reasons",
+            "approval",
+            "status"
+          ],
+          "delete_previous_versions": false
+        }
+      },
+      {
+        "id": "rollback-control",
+        "type": "RollbackControl",
+        "position": {
+          "x": 3300,
+          "y": 260
+        },
+        "data": {
+          "label": "Restore or undo",
+          "actions": {
+            "undo_last_change": "Reverts the most recent unapproved edit inside the current draft.",
+            "discard_draft": "Closes the draft and returns to the last approved version.",
+            "restore_previous_approved_version": "Creates a new restoration event pointing to the selected approved version; no history is deleted.",
+            "cancel_run": "Stops new tool calls, preserves the immutable snapshot, and marks the run Cancelled.",
+            "kill_switch": "Stops all active and queued agent work; no partial output may become final."
+          }
+        }
+      },
+      {
+        "id": "approved-export",
+        "type": "Exporter",
+        "position": {
+          "x": 3600,
+          "y": 0
+        },
+        "data": {
+          "label": "Approved brief export",
+          "allowed_formats": [
+            "Markdown",
+            "PDF"
+          ],
+          "requires_approval": true,
+          "allowed_external_actions": [],
+          "prohibited_targets": [
+            "Roadmap",
+            "Jira",
+            "Slack",
+            "Notion",
+            "Email"
+          ]
+        }
+      },
+      {
+        "id": "audit-log",
         "type": "Logger",
-        "position": { "x": 1280, "y": 360 },
+        "position": {
+          "x": 3600,
+          "y": 260
+        },
         "data": {
-          "label": "Eval pipeline log",
-          "fields": ["trace_id", "trigger_payload", "retrieved_chunks", "tool_calls", "outputs", "confidence_per_risk", "pm_action", "latency_ms", "tokens", "cost_usd"]
+          "label": "Evaluation and audit log",
+          "fields": [
+            "trace_id",
+            "trigger_payload",
+            "input_hash",
+            "source_versions",
+            "strategy_version",
+            "analysis_mode",
+            "retrieved_chunks",
+            "reranking_scores",
+            "tool_calls",
+            "model_and_prompt_version",
+            "outputs",
+            "citation_validation",
+            "evidence_gate_decisions",
+            "pm_actions",
+            "overrides",
+            "approval",
+            "restoration_events",
+            "latency_ms",
+            "tokens",
+            "cost_usd",
+            "errors"
+          ],
+          "append_only": true
         }
       }
     ],
     "edges": [
-      { "source": "input-thread", "target": "system-prompt" },
-      { "source": "input-thread", "target": "retrieval" },
-      { "source": "retrieval", "target": "system-prompt" },
-      { "source": "system-prompt", "target": "llm" },
-      { "source": "llm", "target": "guardrail" },
-      { "source": "guardrail", "target": "auto-post", "label": "≥70%" },
-      { "source": "guardrail", "target": "hand-off", "label": "<70%" },
-      { "source": "llm", "target": "eval-log" }
+      {
+        "source": "workspace-input",
+        "target": "immutable-snapshot"
+      },
+      {
+        "source": "immutable-snapshot",
+        "target": "permission-validator"
+      },
+      {
+        "source": "permission-validator",
+        "target": "mode-selector",
+        "label": "valid"
+      },
+      {
+        "source": "permission-validator",
+        "target": "safe-handoff",
+        "label": "invalid or unauthorized"
+      },
+      {
+        "source": "mode-selector",
+        "target": "rag-retriever",
+        "label": "Strategy Mode or Quality Mode"
+      },
+      {
+        "source": "rag-retriever",
+        "target": "signal-extractor"
+      },
+      {
+        "source": "signal-extractor",
+        "target": "priority-engine"
+      },
+      {
+        "source": "priority-engine",
+        "target": "evidence-gate"
+      },
+      {
+        "source": "evidence-gate",
+        "target": "opportunity-brief",
+        "label": "pass"
+      },
+      {
+        "source": "evidence-gate",
+        "target": "safe-handoff",
+        "label": "fail"
+      },
+      {
+        "source": "opportunity-brief",
+        "target": "pm-review"
+      },
+      {
+        "source": "safe-handoff",
+        "target": "pm-review",
+        "label": "PM resolves or excludes"
+      },
+      {
+        "source": "pm-review",
+        "target": "approval-gate",
+        "label": "submit for approval"
+      },
+      {
+        "source": "pm-review",
+        "target": "rollback-control",
+        "label": "undo, discard, restore, cancel"
+      },
+      {
+        "source": "rollback-control",
+        "target": "pm-review",
+        "label": "return to review"
+      },
+      {
+        "source": "approval-gate",
+        "target": "pm-review",
+        "label": "not approved"
+      },
+      {
+        "source": "approval-gate",
+        "target": "version-store",
+        "label": "approved"
+      },
+      {
+        "source": "version-store",
+        "target": "approved-export"
+      },
+      {
+        "source": "immutable-snapshot",
+        "target": "audit-log"
+      },
+      {
+        "source": "signal-extractor",
+        "target": "audit-log"
+      },
+      {
+        "source": "evidence-gate",
+        "target": "audit-log"
+      },
+      {
+        "source": "pm-review",
+        "target": "audit-log"
+      },
+      {
+        "source": "rollback-control",
+        "target": "audit-log"
+      },
+      {
+        "source": "version-store",
+        "target": "audit-log"
+      }
     ]
   },
   "_readme": {
-    "purpose": "Starter Langflow export for the optional M5 post-class lab. Mirrors the AWSpec — ReAct pattern, single agent, confidence-based handoff.",
-    "tools_required": ["Langflow", "OpenAI API key (~$5 credit is enough for the lab)"],
-    "what_to_change": [
-      "Replace the 'RAG retriever (placeholder)' with a real vector store of the RocketShip corpus.",
-      "Replace the 'auto-post' and 'hand-off' SlackPost nodes with real Slack tool integrations or your own webhook.",
-      "Adjust the confidence threshold in the guardrail node based on your eval data (M6)."
+    "purpose": "Reference configuration for the M5 Juno agentic-workflow lab. It mirrors 05-agentic-workflows/awspec.md and replaces the unrelated P0 Slack-triage starter.",
+    "implementation_status": "Repo-ready reference workflow. Custom node types and integrations must be mapped to the selected agent builder before production use.",
+    "tools_required": [
+      "Agent workflow builder or Langflow",
+      "LLM API access",
+      "Document parser and embedding model",
+      "Permission-aware vector store",
+      "Hybrid retriever and reranker",
+      "Append-only version and audit store"
+    ],
+    "repository_recovery": {
+      "backup_branch": "backup/pre-juno-agent-rewrite-2026-09-01",
+      "original_file_available_in_git_history": true,
+      "recovery_instruction": "Restore the file from the backup branch or revert the replacement commit. Do not delete history."
+    },
+    "runtime_recovery": [
+      "Cancel the active run",
+      "Undo the last unapproved change",
+      "Discard the current draft",
+      "Compare any two versions",
+      "Restore a prior approved version through a new restoration event",
+      "Use the kill switch to stop all active and queued work"
+    ],
+    "production_configuration_required": [
+      "Replace reference/custom nodes with supported components in the selected agent builder.",
+      "Connect only to RocketShip-approved evidence sources.",
+      "Configure permission checks and a PII policy.",
+      "Configure citation validation and evidence-gate thresholds.",
+      "Connect an append-only audit and version store.",
+      "Run M6 evaluations before increasing autonomy or adding external integrations."
     ]
   }
 }
