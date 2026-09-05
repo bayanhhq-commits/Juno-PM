@@ -1,0 +1,267 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="Juno Product OS — local AI product management workflow prototype">
+  <title>Juno Product OS</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand">
+        <span class="brand-mark">J</span>
+        <span><strong>Juno</strong><small>Product OS</small></span>
+      </div>
+
+      <nav aria-label="Primary navigation">
+        <button class="nav-item active" data-view="command"><span>⌂</span>Command Center</button>
+        <button class="nav-item" data-view="knowledge"><span>◫</span>Knowledge & Usage</button>
+        <button class="nav-item" data-view="opportunities"><span>◇</span>Opportunities</button>
+        <button class="nav-item" data-view="roadmap"><span>⇢</span>Roadmap Studio</button>
+        <button class="nav-item" data-view="pack"><span>▤</span>Product Pack</button>
+        <button class="nav-item" data-view="launch"><span>△</span>Launch Center</button>
+        <button class="nav-item" data-view="audit"><span>◎</span>Control & Audit</button>
+      </nav>
+
+      <div class="sidebar-foot">
+        <div class="local-state"><i></i><span><strong>Local workspace</strong><small>No API · No external writes</small></span></div>
+        <button id="resetWorkspace" class="quiet-button">Reset demo workspace</button>
+      </div>
+    </aside>
+
+    <main>
+      <header class="topbar">
+        <div>
+          <p class="eyebrow" id="viewEyebrow">Portfolio workspace</p>
+          <h1 id="viewTitle">Command Center</h1>
+        </div>
+        <div class="top-actions">
+          <span class="mode-badge" id="modeBadge">Quality Mode</span>
+          <span class="save-state" id="saveState">Saved locally</span>
+          <button class="button danger-outline" id="globalKill">Kill switch</button>
+          <button class="button primary" id="primaryAction">Run portfolio analysis</button>
+        </div>
+      </header>
+
+      <div id="killBanner" class="kill-banner hidden">
+        <strong>Kill switch active.</strong> New analyses, approvals, lifecycle transitions, and exports are blocked.
+        <button id="clearKill">Reset controls</button>
+      </div>
+
+      <section class="view active" id="view-command">
+        <div class="hero-grid">
+          <article class="focus-card">
+            <div class="focus-copy">
+              <p class="eyebrow">Current decision</p>
+              <h2>September Product Investment Review</h2>
+              <p>Turn approved product evidence and module usage into a defensible roadmap, then carry each item through the right delivery path.</p>
+              <div class="focus-actions">
+                <button class="button primary" data-go="opportunities">Review priorities</button>
+                <button class="button" data-go="knowledge">Inspect evidence</button>
+              </div>
+            </div>
+            <div class="confidence-ring" aria-label="Portfolio confidence 82 percent">
+              <strong>82%</strong><small>evidence<br>coverage</small>
+            </div>
+          </article>
+          <article class="attention-card">
+            <div class="section-heading compact"><div><p class="eyebrow">Needs attention</p><h3>3 decisions waiting</h3></div><span class="pulse"></span></div>
+            <ul class="attention-list">
+              <li><span class="severity high">P1</span><span><strong>CSV export reliability</strong><small>Ready for PM approval</small></span></li>
+              <li><span class="severity medium">P2</span><span><strong>AI course recommendations</strong><small>POC success metric missing</small></span></li>
+              <li><span class="severity low">P3</span><span><strong>Dark mode request</strong><small>Insufficient user evidence</small></span></li>
+            </ul>
+          </article>
+        </div>
+
+        <div class="metric-grid" id="portfolioMetrics"></div>
+
+        <article class="panel">
+          <div class="section-heading">
+            <div><p class="eyebrow">Product lifecycle</p><h3>From signal to measurable outcome</h3></div>
+            <span class="meta">Human approval at every consequential gate</span>
+          </div>
+          <div class="lifecycle" id="lifecycleOverview"></div>
+        </article>
+
+        <div class="two-column">
+          <article class="panel">
+            <div class="section-heading">
+              <div><p class="eyebrow">Roadmap health</p><h3>Active investments</h3></div>
+              <button class="text-button" data-go="roadmap">Open roadmap →</button>
+            </div>
+            <div id="investmentList" class="investment-list"></div>
+          </article>
+          <article class="panel">
+            <div class="section-heading">
+              <div><p class="eyebrow">Lab coverage</p><h3>Certification proof</h3></div>
+              <span class="badge green">M1–M5 connected</span>
+            </div>
+            <div class="lab-map" id="labMap"></div>
+          </article>
+        </div>
+      </section>
+
+      <section class="view" id="view-knowledge">
+        <div class="page-intro">
+          <div><h2>Knowledge & Usage Hub</h2><p>Bring product context together without losing source, date, permissions, or version.</p></div>
+          <div class="button-row">
+            <label class="button file-button">Import local files<input id="fileInput" type="file" multiple accept=".txt,.md,.csv,.json"></label>
+            <button class="button primary" id="indexSources">Index approved sources</button>
+          </div>
+        </div>
+        <div class="knowledge-grid">
+          <article class="panel">
+            <div class="section-heading">
+              <div><p class="eyebrow">Approved corpus</p><h3>Product knowledge</h3></div>
+              <span class="badge" id="sourceCount">0 sources</span>
+            </div>
+            <div id="sourceLibrary" class="source-library"></div>
+            <div class="add-evidence">
+              <select id="evidenceType" aria-label="Evidence type">
+                <option>Customer feedback</option><option>Support ticket</option><option>Interview</option>
+                <option>Strategy</option><option>Existing PRD</option><option>Executive request</option>
+              </select>
+              <textarea id="evidenceText" rows="3" placeholder="Paste a new evidence excerpt…"></textarea>
+              <button class="button" id="addEvidence">Add evidence</button>
+            </div>
+          </article>
+          <article class="panel usage-panel">
+            <div class="section-heading">
+              <div><p class="eyebrow">Product analytics</p><h3>Module usage signals</h3></div>
+              <span class="badge green">Sample dataset</span>
+            </div>
+            <div class="usage-summary" id="usageSummary"></div>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Module</th><th>Users</th><th>Active</th><th>Completion</th><th>Signal</th></tr></thead>
+                <tbody id="usageTable"></tbody>
+              </table>
+            </div>
+            <p class="helper">Import a CSV containing <code>module, users, active_users, completion_rate</code> to replace this sample locally.</p>
+          </article>
+        </div>
+        <article class="panel">
+          <div class="section-heading"><div><p class="eyebrow">Retrieval readiness</p><h3>Source quality checks</h3></div><span class="badge green" id="readinessBadge">Ready</span></div>
+          <div class="check-grid" id="sourceChecks"></div>
+        </article>
+      </section>
+
+      <section class="view" id="view-opportunities">
+        <div class="page-intro">
+          <div><h2>Opportunity Prioritization</h2><p>Separate user evidence from opinions, score transparently, and keep weak requests out of the recommended order.</p></div>
+          <div class="button-row"><button class="button" id="addOpportunity">+ Add opportunity</button><button class="button primary" id="runPrioritization">Recalculate priorities</button></div>
+        </div>
+        <div class="criteria-strip">
+          <span><strong>Scoring model</strong> Impact 30% · Evidence 25% · Strategy 20% · Urgency 15% · Effort −5% · Risk −5%</span>
+          <button class="text-button" id="toggleCriteria">Show scoring details</button>
+        </div>
+        <div class="criteria-details hidden" id="criteriaDetails">
+          <div><strong>P0</strong><span>85–100</span></div><div><strong>P1</strong><span>70–84</span></div>
+          <div><strong>P2</strong><span>50–69</span></div><div><strong>P3</strong><span>Below 50</span></div>
+          <p>Items without direct evidence are blocked regardless of score.</p>
+        </div>
+        <div class="opportunity-grid" id="opportunityGrid"></div>
+      </section>
+
+      <section class="view" id="view-roadmap">
+        <div class="page-intro">
+          <div><h2>Roadmap Studio</h2><p>Choose a delivery path based on evidence, uncertainty, and risk—not one process for every idea.</p></div>
+          <div class="button-row"><button class="button" id="comparePaths">Compare paths</button><button class="button primary" id="saveRoadmap">Save roadmap version</button></div>
+        </div>
+        <div class="path-legend" id="pathLegend"></div>
+        <div class="roadmap-board" id="roadmapBoard"></div>
+      </section>
+
+      <section class="view" id="view-pack">
+        <div class="page-intro">
+          <div><h2>Product Pack Factory</h2><p>Generate a traceable product package from the approved opportunity and lifecycle decision.</p></div>
+          <div class="button-row">
+            <select id="packItem" aria-label="Roadmap item"></select>
+            <button class="button primary" id="generatePack">Generate full product pack</button>
+          </div>
+        </div>
+        <div class="factory-layout">
+          <aside class="artifact-nav" id="artifactNav"></aside>
+          <article class="document-panel">
+            <div class="document-toolbar">
+              <div><span class="document-status" id="documentStatus">Not generated</span><strong id="documentTitle">Select an artifact</strong></div>
+              <div class="button-row"><button class="button small" id="regenerateArtifact" disabled>Regenerate</button><button class="button small" id="downloadArtifact" disabled>Download .md</button></div>
+            </div>
+            <div class="document-empty" id="documentPreview"><span>▤</span><h3>No artifact selected</h3><p>Generate the pack, then review each deliverable before approval.</p></div>
+          </article>
+        </div>
+      </section>
+
+      <section class="view" id="view-launch">
+        <div class="page-intro">
+          <div><h2>Launch Center</h2><p>Move from “development complete” to a controlled, measurable release.</p></div>
+          <div class="button-row"><select id="launchItem" aria-label="Launch item"></select><button class="button primary" id="approveRelease">Approve release gate</button></div>
+        </div>
+        <article class="release-hero">
+          <div><p class="eyebrow">Release readiness</p><h2 id="releaseTitle">CSV export reliability</h2><p id="releasePath">Reliability Fix · UAT stage</p></div>
+          <div class="readiness-score"><strong id="readinessScore">0%</strong><small>checks complete</small></div>
+          <div class="progress"><i id="readinessProgress"></i></div>
+        </article>
+        <div class="launch-grid" id="launchChecklist"></div>
+        <article class="panel">
+          <div class="section-heading"><div><p class="eyebrow">Release gates</p><h3>Go / hold decision</h3></div><span class="badge amber" id="releaseGateBadge">Hold</span></div>
+          <div class="gate-grid" id="releaseGates"></div>
+        </article>
+      </section>
+
+      <section class="view" id="view-audit">
+        <div class="page-intro">
+          <div><h2>Control & Audit</h2><p>Every consequential change is reviewable, reversible, and recorded.</p></div>
+          <div class="button-row"><button class="button danger-outline" id="cancelActive">Cancel active run</button><button class="button danger" id="auditKill">Kill switch</button></div>
+        </div>
+        <div class="control-grid">
+          <article class="panel">
+            <div class="section-heading"><div><p class="eyebrow">Reversibility</p><h3>Recovery controls</h3></div><span class="badge green">Append-only</span></div>
+            <div class="control-actions">
+              <button class="control-action" id="undoLast"><span>↶</span><strong>Undo last change</strong><small>Create a new version from the prior state</small></button>
+              <button class="control-action" id="discardDraft"><span>⊘</span><strong>Discard current draft</strong><small>Return to the last approved state</small></button>
+              <button class="control-action" id="restoreApproved"><span>↺</span><strong>Restore approved</strong><small>Add a restoration event without deleting history</small></button>
+              <button class="control-action" id="exportSnapshot"><span>↓</span><strong>Export snapshot</strong><small>Download the complete local workspace</small></button>
+            </div>
+          </article>
+          <article class="panel">
+            <div class="section-heading"><div><p class="eyebrow">Versions</p><h3>Decision history</h3></div><span class="badge" id="versionCount">0 versions</span></div>
+            <div class="version-list" id="versionList"></div>
+          </article>
+        </div>
+        <article class="panel">
+          <div class="section-heading"><div><p class="eyebrow">Audit log</p><h3>Workspace events</h3></div><button class="text-button" id="downloadAudit">Download log</button></div>
+          <div class="table-wrap"><table><thead><tr><th>Time</th><th>Action</th><th>Object</th><th>Outcome</th></tr></thead><tbody id="auditTable"></tbody></table></div>
+        </article>
+      </section>
+    </main>
+  </div>
+
+  <dialog id="pathDialog">
+    <div class="dialog-head"><div><p class="eyebrow">Lifecycle routing</p><h3>Choose the smallest responsible path</h3></div><button class="icon-button" data-close>×</button></div>
+    <div class="path-comparison" id="pathComparison"></div>
+  </dialog>
+
+  <dialog id="opportunityDialog">
+    <form method="dialog" id="opportunityForm">
+      <div class="dialog-head"><div><p class="eyebrow">Opportunity intake</p><h3>Add a roadmap candidate</h3></div><button class="icon-button" type="button" data-close-opportunity>×</button></div>
+      <div class="dialog-body">
+        <label class="field"><span>Opportunity title</span><input id="newOppTitle" required placeholder="Describe the user problem"></label>
+        <label class="field"><span>Evidence summary</span><textarea id="newOppEvidence" required rows="4" placeholder="What evidence supports this?"></textarea></label>
+        <div class="form-grid">
+          <label class="field"><span>Impact (1–5)</span><input id="newOppImpact" type="number" min="1" max="5" value="3"></label>
+          <label class="field"><span>Evidence (1–5)</span><input id="newOppEvidenceScore" type="number" min="1" max="5" value="3"></label>
+          <label class="field"><span>Effort (1–5)</span><input id="newOppEffort" type="number" min="1" max="5" value="3"></label>
+        </div>
+      </div>
+      <div class="dialog-actions"><button class="button" type="button" data-close-opportunity>Cancel</button><button class="button primary" type="submit">Add opportunity</button></div>
+    </form>
+  </dialog>
+
+  <div class="toast" id="toast" role="status"></div>
+  <script src="./app.js"></script>
+</body>
+</html>

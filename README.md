@@ -1,97 +1,96 @@
-# Juno PM
+# Juno — AI Product Manager Agent
 
-> _(one-line pitch: what Juno does, for whom, in one sentence)_
+**Product School AI Product Manager Certificate · Final Project · Bayan**
 
-_Your name · cohort · date_
+Juno is a human-controlled product agent that turns approved product evidence and module-usage data into a prioritized roadmap and a complete product-delivery pack. It reads first, shows its reasoning and citations, keeps all outputs as drafts, and waits for explicit PM approval before export.
 
-This repo is my final project for the **AI Product Management Certification**. Each module's artefact lives in its own folder; this README is the dashboard and the pitch.
+## Final submission links
 
-**How to use this template:** click **Use this template → Create a new repository**, name it `juno-pm`, and commit one module's artefact per session. Assemble this dashboard with the **Final Project Deliverables Builder** (paste its `README.md` output over this file).
+- **Live project showcase:** https://juno-pm-final-project.b-hasan.chatgpt.site
+- **Interactive Product OS prototype (V2):** https://juno-pm-final-project.b-hasan.chatgpt.site/v2/
+- **Early control prototype (V1):** https://juno-pm-final-project.b-hasan.chatgpt.site/v1/
+- **Working local agent (V3):** [`agent/`](./agent/)
+- **Instructor submission guide:** [`FINAL-SUBMISSION.md`](./FINAL-SUBMISSION.md)
+- **Evolution and decision history:** [`HISTORY.md`](./HISTORY.md)
+- **Product School lab mapping:** [`LAB-MAPPING.md`](./LAB-MAPPING.md)
+- **Verification report:** [`TEST-REPORT.md`](./TEST-REPORT.md)
+- **Complete product-delivery pack:** [`07-product-delivery/`](./07-product-delivery/)
 
----
+## What Juno does
 
-## Module artefacts
+1. Reads approved product context: course modules, research, feedback, existing PRDs, strategy, and usage CSV/JSON.
+2. Checks source quality, permissions, freshness, and evidence coverage.
+3. Extracts opportunities and separates user evidence from opinions or arbitrary requests.
+4. Prioritizes transparently using impact, evidence, strategy, urgency, effort, and risk.
+5. Recommends the right path for each item: explore, POC, development, MVP, beta, launch, or iterate.
+6. Creates 13 linked outputs: opportunity brief, one-page PRD, full PRD, prototype brief, epic, stories, analytics, UAT, GTM, rollout, release notes, user manual, and post-launch review.
+7. Stops at approval gates. It never silently publishes, sends messages, or edits an external system.
 
-### M1 · Prompting
-- **System prompt** — [`01-prompting/system-prompt.md`](01-prompting/system-prompt.md)
-- **Lovable prototype** — _(share URL)_
+## Repository map
 
-### M2 · Strategy
-- **Decision matrix** — [`02-strategy/decision-matrix.md`](02-strategy/decision-matrix.md)
-- **AI Strategy one-pager** — [`02-strategy/strategy-one-pager.md`](02-strategy/strategy-one-pager.md)
+| Area | Evidence |
+|---|---|
+| M1 — Prompting | [`01-prompting/`](./01-prompting/) |
+| M2 — Strategy | [`02-strategy/`](./02-strategy/) |
+| M3 — RAG + PRD | [`03-rag-prd/`](./03-rag-prd/) |
+| M4 — AI UX + trust | [`04-ai-ux/`](./04-ai-ux/) |
+| M5 — Agentic workflows | [`05-agentic-workflows/`](./05-agentic-workflows/) |
+| M6 — Evaluation | [`06-evals/`](./06-evals/) |
+| Final delivery pack | [`07-product-delivery/`](./07-product-delivery/) |
+| Working agent | [`agent/`](./agent/) |
+| Versioned prototypes | [`docs/`](./docs/) |
+| Downloadable releases | [`downloads/`](./downloads/) |
 
-### M3 · RAG / AI PRD
-- **AI PRD** — [`03-rag-prd/prd.md`](03-rag-prd/prd.md)
+## Run the working agent locally
 
-### M4 · AI-Native UX
-- **AI user flow** — [`04-ai-ux/user-flow.md`](04-ai-ux/user-flow.md)
-- **Trust-gap mitigations** — [`04-ai-ux/trust-gaps.md`](04-ai-ux/trust-gaps.md)
+Requirements: Node.js 20+ and either Ollama for local inference or an OpenAI API key.
 
-### M5 · Agentic Workflows
-- **Agent Workflow Spec (AWSpec)** — [`05-agentic-workflows/awspec.md`](05-agentic-workflows/awspec.md)
-- **Agent Control Panel** — [`05-agentic-workflows/agent-control-panel.md`](05-agentic-workflows/agent-control-panel.md)
-- **Juno agent reference** — [`05-agentic-workflows/Juno Agent.json`](05-agentic-workflows/Juno%20Agent.json)
-- **Langflow walkthrough** — [`05-agentic-workflows/langflow-walkthrough.md`](05-agentic-workflows/langflow-walkthrough.md)
+### Windows
 
-### M6 · Evals & Guardrails
-- **Eval stack** — [`06-evals/eval-stack.md`](06-evals/eval-stack.md)
-- **Human evaluation rubric** — [`06-evals/human-rubric.md`](06-evals/human-rubric.md)
+1. Download [`juno-agent-v3-windows.zip`](./downloads/juno-agent-v3-windows.zip).
+2. Unzip it.
+3. Double-click `START_JUNO.bat`.
+4. Open the local address shown in the terminal.
 
----
+### macOS or Linux
 
-## PM Execution Plan
-
-### Where Juno is today
-_____
-
-### What ships next (next 2 sprints)
-_____
-
-### What I watch (dashboards)
-_____
-
-### Red lines (what blocks shipping — numbers, not feelings)
-_____
-
-### Governance
-_Compliance · Safety · Reliability · Reputation._
-
----
-
-## Build Insights
-
-- **Friction point.** _____
-- **Key learning.** _____
-- **Aha moment.** _____
-
----
-
-## Repo structure
-
-```
-juno-pm/
-├── README.md                          ← this dashboard + pitch
-├── 01-prompting/
-│   ├── system-prompt.md               ← M1: Juno's system prompt
-│   └── lovable-prototype.md           ← M1: prototype link + debrief
-├── 02-strategy/
-│   ├── decision-matrix.md             ← M2: build / buy / fine-tune / partner call
-│   └── strategy-one-pager.md          ← M2: AI strategy one-pager
-├── 03-rag-prd/
-│   └── prd.md                         ← M3: AI PRD with retrieval requirements
-├── 04-ai-ux/
-│   ├── user-flow.md                   ← M4: AI-native user flow
-│   └── trust-gaps.md                  ← M4: trust-gap mitigations
-├── 05-agentic-workflows/
-│   ├── awspec.md                      ← M5: Agent Workflow Spec
-│   ├── agent-control-panel.md         ← M5: Agent Control Panel
-│   ├── Juno Agent.json                ← M5: builder-neutral agent reference
-│   └── langflow-walkthrough.md        ← M5: safe Langflow mapping + dry run
-└── 06-evals/
-    ├── eval-stack.md                  ← M6: layered eval stack
-    └── human-rubric.md                ← M6: human evaluation rubric
+```bash
+cd agent
+npm start
 ```
 
----
+Then open `http://localhost:4173`.
 
-_Certification submission — AI Product Management Certification._
+The OpenAI key is held only in process memory, requests use `store: false`, and runtime history is excluded from Git. Ollama keeps the model path local.
+
+## Verification
+
+```bash
+cd agent
+npm test
+npm run build
+```
+
+Six automated tests cover the core pipeline, oversized multi-batch ingestion, mocked OpenAI and Ollama adapters, server health/UI delivery, and mapping an agent run into the Product OS workflow.
+
+## Human control and reversibility
+
+- Draft by default; approval is explicit.
+- Source references remain attached to recommendations.
+- Every agent run is written to a new append-only folder.
+- Approve, reject, cancel, kill, undo, and restore are visible controls.
+- `.env`, API keys, and `data/runs/` are excluded from the repository.
+- The pre-submission repository state is preserved on [`backup/pre-final-submission-2026-09-05`](https://github.com/bayanhhq-commits/Juno-PM/tree/backup/pre-final-submission-2026-09-05).
+
+See [`HISTORY.md`](./HISTORY.md) for the complete evolution and rollback path.
+
+## Current limitations
+
+- V3 directly ingests TXT, Markdown, CSV, JSON, and HTML. Protected LMS pages must be saved as HTML or copied into text/Markdown first.
+- PDF and DOCX parsing are documented next steps.
+- V2 is the shareable browser walkthrough; V3 requires local execution because its server and model adapters cannot run safely inside a static page.
+- Demo evidence is synthetic and is never represented as real customer research.
+
+## Recommended instructor review path
+
+Open the live showcase, run V2, review `LAB-MAPPING.md`, inspect one complete delivery path in `07-product-delivery/`, then run or inspect V3 and its tests. A five-minute script is included in [`FINAL-SUBMISSION.md`](./FINAL-SUBMISSION.md).

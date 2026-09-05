@@ -1,0 +1,9 @@
+.env
+.env.*
+!.env.example
+node_modules/
+data/runs/
+agent/data/runs/
+*.key
+*.pem
+.DS_Store
